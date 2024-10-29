@@ -9,7 +9,8 @@ export class CreateTasksTable1730228325491 implements MigrationInterface {
                 name VARCHAR(255) NOT NULL,
                 description TEXT,
                 status VARCHAR(255) NOT NULL DEFAULT 'pending',
-                end_date DATE NOT NULL
+                end_date DATE NOT NULL,
+                userId INTEGER NOT NULL
             );
        `);
     }

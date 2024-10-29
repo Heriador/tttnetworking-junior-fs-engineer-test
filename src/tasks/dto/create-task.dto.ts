@@ -1,5 +1,5 @@
 import { IsDateString, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
-import { Status } from "src/tasks/status.enum";
+import { Status } from "../status.enum";
 
 export class CreateTaskDto {
 
@@ -18,4 +18,6 @@ export class CreateTaskDto {
     @IsDateString()
     @IsNotEmpty()
     end_date: Date;
+
+    userId: number;
 }

@@ -1,10 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Status } from 'src/tasks/status.enum';
+import { Status } from './status.enum';
 
 @Injectable()
 export class TasksService {
@@ -14,32 +14,36 @@ export class TasksService {
     private readonly taskRepository: Repository<Task>,
   ){}
 
-  async create(createTaskDto: CreateTaskDto) {
+  async create(user:any ,createTaskDto: CreateTaskDto) {
 
     const task: Task = await this.taskRepository.findOneBy({name: createTaskDto.name});
 
     if(task){
       throw new ConflictException("Task already exists");
     }
+    console.log(user);
+
+    createTaskDto.userId = user.sub;
 
     return this.taskRepository.save(createTaskDto);
   }
 
-  findAll(status?: Status) {
+  findAll(user: any,status?: Status) {
+    console.log(user);
     if(!status){
-      return this.taskRepository.find();
+      return this.taskRepository.findBy({userId: user.sub});
     }
-    return this.taskRepository.findBy({status});
+    return this.taskRepository.findBy({userId: user.sub,status});
   }
 
-  findOne(id: number) {
-    return this.taskRepository.findOneBy({id});
+  findOne(user: any,id: number) {
+    return this.taskRepository.findOneBy({userId: user.sub,id});
   }
 
-  async update(id: number, updateTaskDto: UpdateTaskDto) {
-    const task: Task = await this.taskRepository.findOneBy({id});
+  async update(user: any,id: number, updateTaskDto: UpdateTaskDto) {
+    const task: Task = await this.taskRepository.findOneBy({userId: user.sub,id});
     if(!task){
-      return "Task not found";
+      throw new NotFoundException("Task not found");
     }
 
     task.name = updateTaskDto.name;
@@ -50,7 +54,12 @@ export class TasksService {
     return this.taskRepository.save(task);
   }
 
-  remove(id: number) {
+  async remove(user:any, id: number) {
+    const task: Task = await this.taskRepository.findOneBy({userId: user.sub,id});
+    if(!task){
+      throw new NotFoundException("Task not found");
+    }
+
     return this.taskRepository.delete(id);
   }
 }

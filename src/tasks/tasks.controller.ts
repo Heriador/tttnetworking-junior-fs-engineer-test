@@ -1,35 +1,51 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Put, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Status } from 'src/tasks/status.enum';
+import { Status } from './status.enum';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { Request } from 'express';
+import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Task } from './entities/task.entity';
 
 @Controller('tasks')
+@UseGuards(JwtGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  @ApiOperation({summary: 'Create a task'})
+  @ApiBody({type: CreateTaskDto})
+  @ApiResponse({status: 201, description: 'Task created successfully', type: CreateTaskDto})
+  create(@Req() req: Request,@Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.create(req.user,createTaskDto);
   }
 
   @Get()
-  findAll(@Query('status') status?: Status) {
-    return this.tasksService.findAll(status);
+  @ApiOperation({summary: 'Get all tasks'})
+  @ApiResponse({status: 200, description: 'Tasks retrieved successfully', type: [Task]})
+  findAll(@Req() req: Request,@Query('status') status?: Status) {
+    return this.tasksService.findAll(req.user,status);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(+id);
+  @ApiOperation({summary: 'Get a task by id'})
+  @ApiResponse({status: 200, description: 'Task retrieved successfully', type: Task})
+  findOne(@Req() req: Request,@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.findOne(req.user,+id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.tasksService.update(+id, updateTaskDto);
+  @ApiOperation({summary: 'Update a task by id'})
+  @ApiResponse({status: 200, description: 'Task updated successfully', type: UpdateTaskDto})
+  update(@Req() req: Request,@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto) {
+    return this.tasksService.update(req.user,+id, updateTaskDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tasksService.remove(+id);
+  @ApiOperation({summary: 'Delete a task by id'})
+  @ApiResponse({status: 200, description: 'Task deleted successfully'})
+  remove(@Req() req: Request,@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.remove(req.user,+id);
   }
 }

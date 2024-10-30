@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Put, ParseIntPipe, UseGuards, Req, HttpCode, HttpStatus } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Status } from './status.enum';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { Request } from 'express';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Task } from './entities/task.entity';
 
+@ApiBearerAuth()
 @Controller('tasks')
 @UseGuards(JwtGuard)
 export class TasksController {
@@ -16,7 +17,11 @@ export class TasksController {
   @Post()
   @ApiOperation({summary: 'Create a task'})
   @ApiBody({type: CreateTaskDto})
-  @ApiResponse({status: 201, description: 'Task created successfully', type: CreateTaskDto})
+  @ApiResponse({status: HttpStatus.CREATED, description: 'Task created successfully', type: CreateTaskDto})
+  @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Bad request'})
+  @ApiResponse({status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized'})
+  @ApiResponse({status: HttpStatus.FORBIDDEN, description: 'Forbidden'})
+  @ApiResponse({status: HttpStatus.CONFLICT, description: 'Task already exists'})
   create(@Req() req: Request,@Body() createTaskDto: CreateTaskDto) {
     return this.tasksService.create(req.user,createTaskDto);
   }

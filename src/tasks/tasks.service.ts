@@ -45,12 +45,11 @@ export class TasksService {
     if(!task){
       throw new NotFoundException("Task not found");
     }
-
+    console.log(updateTaskDto)
     task.name = updateTaskDto.name;
     task.description = updateTaskDto.description;
     task.status = updateTaskDto.status;
     task.end_date = updateTaskDto.end_date;
-
     return this.taskRepository.save(task);
   }
 

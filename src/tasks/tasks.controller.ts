@@ -42,9 +42,11 @@ export class TasksController {
 
   @Put(':id')
   @ApiOperation({summary: 'Update a task by id'})
-  @ApiResponse({status: 200, description: 'Task updated successfully', type: UpdateTaskDto})
-  update(@Req() req: Request,@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.tasksService.update(req.user,+id, updateTaskDto);
+  @ApiResponse({status: 200, description: 'Task updated successfully'})
+  update(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.update(req.user,+id, req.body);
   }
 
   @Delete(':id')
